@@ -12,8 +12,9 @@ import com.taskmanager.taskmngr_backend.model.converter.ComentarioConverter;
 import com.taskmanager.taskmngr_backend.model.dto.ComentarioDTO;
 import com.taskmanager.taskmngr_backend.service.ComentarioService;
 
-@RestController
-@RequestMapping("/comentario")
+// dar um nome único ao bean (evita conflito com outro BuscaComentarioController)
+@RestController("buscaComentarioControllerTarefa")
+@RequestMapping("/tarefa/comentarios")
 @CrossOrigin(origins = "http://localhost:5173")
 public class BuscaComentarioController {
     @Autowired
@@ -23,7 +24,7 @@ public class BuscaComentarioController {
     @Autowired
     private ComentarioConverter comentarioConverterService;
 
-@GetMapping("/listar")
+    @GetMapping("/listar")
     public ResponseEntity<List<ComentarioDTO>> listarTodos() {
         List<ComentarioDTO> dtos = comentarioService.listarTodos().stream()
                 .map(comentarioConverterService::modelParaDto).collect(Collectors.toList());
