@@ -1,4 +1,4 @@
-package com.taskmanager.taskmngr_backend.config;
+package com.servico_google.servico_google.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

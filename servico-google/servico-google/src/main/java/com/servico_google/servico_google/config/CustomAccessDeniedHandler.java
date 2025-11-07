@@ -1,7 +1,7 @@
-package com.taskmanager.taskmngr_backend.config;
+package com.servico_google.servico_google.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taskmanager.taskmngr_backend.model.dto.ErroRespostaDTO;
+import com.servico_google.servico_google.model.dto.google.ErroRespostaDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

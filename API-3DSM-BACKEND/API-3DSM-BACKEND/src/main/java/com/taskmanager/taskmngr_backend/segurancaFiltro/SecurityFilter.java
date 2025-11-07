@@ -45,6 +45,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null && !token.isEmpty()) {
             try {
                 String decryptedToken = CryptoUtils.decrypt(token, cookieService.getSecret());
+                System.out.println("Decrypted Token: " + decryptedToken);
 
                 var login = validaTokenService.validateToken(decryptedToken);
 
