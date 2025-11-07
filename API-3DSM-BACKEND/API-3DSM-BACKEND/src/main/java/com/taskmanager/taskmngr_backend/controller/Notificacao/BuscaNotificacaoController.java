@@ -15,7 +15,7 @@ import com.taskmanager.taskmngr_backend.service.Notificacao.BuscaNotificacaoServ
 
 @RestController
 @RequestMapping("/notificacao")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class BuscaNotificacaoController {
 
     @Autowired

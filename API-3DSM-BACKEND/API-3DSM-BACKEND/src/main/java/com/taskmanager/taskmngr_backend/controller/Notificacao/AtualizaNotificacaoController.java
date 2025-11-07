@@ -13,7 +13,7 @@ import com.taskmanager.taskmngr_backend.service.Notificacao.MarcaComoLidaNotific
 
 @RestController
 @RequestMapping("/notificacao")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class AtualizaNotificacaoController {
 
     @Autowired

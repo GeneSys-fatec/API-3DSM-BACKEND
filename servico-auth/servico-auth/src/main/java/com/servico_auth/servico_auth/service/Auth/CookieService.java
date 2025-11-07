@@ -24,15 +24,13 @@ public class CookieService {
     public ResponseCookie createJWTCookie(String token) {
         String encryptedToken = CryptoUtils.encrypt(token, secret);
 
-        // Verifica se o perfil "dev" NÃO está ativo
         boolean isProd = !env.acceptsProfiles(org.springframework.core.env.Profiles.of("dev"));
 
         return ResponseCookie.from("jwt-token", encryptedToken) 
             .httpOnly(true) 
-            .secure(isProd) // <-- Só é seguro em produção
+            .secure(isProd)
             .path("/")     
             .maxAge(2 * 60 * 60) 
-            .sameSite(isProd ? "None" : "Lax") // <-- "None" em prod, "Lax" em dev
             .build();
     }    
 
@@ -41,10 +39,9 @@ public class CookieService {
 
         return ResponseCookie.from("jwt-token", "")
             .httpOnly(true)
-            .secure(isProd) // <-- Só é seguro em produção
+            .secure(isProd)
             .path("/")
             .maxAge(0) 
-            .sameSite(isProd ? "None" : "Lax") // <-- "None" em prod, "Lax" em dev
             .build();
     }
 

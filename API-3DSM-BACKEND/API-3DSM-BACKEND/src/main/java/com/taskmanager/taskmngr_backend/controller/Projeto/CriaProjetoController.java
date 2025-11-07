@@ -17,7 +17,7 @@ import com.taskmanager.taskmngr_backend.service.Projeto.CriaProjetoService;
 
 @RestController
 @RequestMapping("/projeto")
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*")
+
 public class CriaProjetoController {
     @Autowired
     private CriaProjetoService criaProjetoService;
