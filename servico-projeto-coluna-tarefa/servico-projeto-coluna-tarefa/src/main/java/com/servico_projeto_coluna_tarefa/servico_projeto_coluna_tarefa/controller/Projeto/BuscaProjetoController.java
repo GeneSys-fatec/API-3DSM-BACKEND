@@ -6,12 +6,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+// 1. IMPORTAÇÃO REAL
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
+// import org.springframework.web.bind.annotation.RequestHeader; // <-- REMOVIDO
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exceptions.personalizados.equipes.AcessoNaoAutorizadoException;
@@ -19,6 +21,8 @@ import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exception
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.AdicionadorLinkProjetos;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.converter.ProjetoConverter;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.ProjetoDTO;
+// 2. IMPORTE SEU DTO "ESPELHO"
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.UsuarioDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ProjetoModel;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.PermissaoService;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.Projeto.BuscaProjetoService;
@@ -26,7 +30,6 @@ import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.P
 
 @RestController
 @RequestMapping("/projeto")
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*")
 public class BuscaProjetoController {
     @Autowired
     private BuscaProjetoService buscaProjetoService;
@@ -35,15 +38,18 @@ public class BuscaProjetoController {
     @Autowired
     private ProjetoConverter projetoConverterService;
 
-
     @Autowired
     private PermissaoService permissaoService;
 
     @GetMapping("/meus-projetos")
     public ResponseEntity<List<ProjetoDTO>> listarProjetosDoUsuario(
-            @RequestHeader(value="X-User-ID", defaultValue="ID-DE-TESTE") String usuarioId
+            // 3. INJETE O USUÁRIO REAL
+            @AuthenticationPrincipal UsuarioDTO usuario
     ) {
-        List<ProjetoModel> projetos = buscaProjetoService.listarPorUsuario(usuarioId);
+        // 4. USE O ID DE USUÁRIO REAL
+        // (Nota: seu "buscaProjetoService.listarPorUsuario" deve aceitar um String ID)
+        List<ProjetoModel> projetos = buscaProjetoService.listarPorUsuario(usuario.getUsuId());
+        
         List<ProjetoDTO> dtos = projetos.stream()
                 .map(projetoConverterService::modelParaDto)
                 .collect(Collectors.toList());
@@ -54,9 +60,11 @@ public class BuscaProjetoController {
     @GetMapping("/{projId}")
     public ResponseEntity<ProjetoDTO> buscarPorId(
             @PathVariable String projId,
-            @RequestHeader(value="X-User-ID", defaultValue="ID-DE-TESTE") String usuarioId
+            // 3. INJETE O USUÁRIO REAL
+            @AuthenticationPrincipal UsuarioDTO usuario
     ) {
-        if (!permissaoService.podeAcessarProjeto(usuarioId, projId)) {
+        // 4. USE O ID DE USUÁRIO REAL
+        if (!permissaoService.podeAcessarProjeto(usuario.getUsuId(), projId)) {
             throw new AcessoNaoAutorizadoException("Acesso Negado", "Você não tem permissão para ver este projeto.");
         }
 
@@ -70,6 +78,7 @@ public class BuscaProjetoController {
         return ResponseEntity.ok(dto);
     }
 
+
     @GetMapping("/listar")
     public ResponseEntity<List<ProjetoDTO>> listarTodas() {
         List<ProjetoModel> projetos = buscaProjetoService.listarTodas();
@@ -77,6 +86,13 @@ public class BuscaProjetoController {
                 .collect(Collectors.toList());
         adicionadorLink.adicionarLink(dtos);
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/listar-por-id")
+    public ResponseEntity<List<ProjetoDTO>> getProjetosByIds(
+            @RequestParam("ids") List<String> ids) {
+        List<ProjetoDTO> projetos = buscaProjetoService.buscarPorListaDeIds(ids);
+        return ResponseEntity.ok(projetos);
     }
 
     @ExceptionHandler(ProjetoNaoEncontradoException.class)

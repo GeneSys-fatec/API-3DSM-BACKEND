@@ -10,4 +10,6 @@ public interface ProjetoRepository extends MongoRepository<ProjetoModel, String>
 
     @Query("{ 'equipeId': { $in: ?0 } }")
     List<ProjetoModel> findByEquipeIdIn(List<String> equipeIds);
+
+    List<ProjetoModel> findAllByProjIdIn(List<String> ids);
 }

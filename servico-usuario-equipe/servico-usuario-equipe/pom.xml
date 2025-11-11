@@ -9,7 +9,7 @@
         <version>3.5.4</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.taskmanager</groupId>
+    <groupId>com.servico_usuario_equipe</groupId>
     <artifactId>taskmngr-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>taskmngr-backend</name>

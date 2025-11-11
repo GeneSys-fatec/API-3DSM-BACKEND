@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.converter.TarefaConverter;
 
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.TarefaDTO;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.UsuarioDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ResponsavelTarefa;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.TarefaModel;
 
@@ -31,7 +32,7 @@ public class CriaTarefaService {
     private static final char[] BASE32HEX = "0123456789abcdefghijklmnopqrstuv".toCharArray();
     private static final SecureRandom RNG = new SecureRandom();
 
-    public TarefaModel criarTarefa(TarefaDTO dto) {
+    public TarefaModel criarTarefa(TarefaDTO dto, UsuarioDTO usuarioLogado) {
         TarefaModel tarefa = tarefaConverter.dtoParaModel(dto);
 
         if (dto.getResponsaveis() != null && !dto.getResponsaveis().isEmpty()) {

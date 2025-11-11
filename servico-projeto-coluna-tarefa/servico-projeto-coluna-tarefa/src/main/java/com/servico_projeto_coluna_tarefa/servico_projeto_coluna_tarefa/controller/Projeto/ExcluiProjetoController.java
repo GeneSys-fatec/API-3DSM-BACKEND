@@ -1,20 +1,26 @@
 package com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.controller.Projeto;
 
-import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exceptions.personalizados.equipes.AcessoNaoAutorizadoException;
-import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exceptions.personalizados.projetos.ProjetoNaoEncontradoException;
-import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ProjetoModel;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+// 1. IMPORTAÇÃO REAL
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+// import org.springframework.web.bind.annotation.RequestHeader; // <-- REMOVIDO
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exceptions.personalizados.equipes.AcessoNaoAutorizadoException;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exceptions.personalizados.projetos.ProjetoNaoEncontradoException;
+// 2. IMPORTE SEU DTO "ESPELHO"
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.UsuarioDTO;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ProjetoModel;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.PermissaoService;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.Projeto.BuscaProjetoService;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.Projeto.ExcluiProjetoService;
-import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.PermissaoService;
 
 @RestController
 @RequestMapping("/projeto")
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*")
 public class ExcluiProjetoController {
     @Autowired
     private ExcluiProjetoService excluiProjetoService;
@@ -28,10 +34,12 @@ public class ExcluiProjetoController {
     @DeleteMapping("/apagar/{projId}")
     public ResponseEntity<String> apagarProjeto(
             @PathVariable String projId,
-            @RequestHeader(value="X-User-ID", defaultValue="ID-DE-TESTE") String usuarioId
+            // 3. INJETE O USUÁRIO REAL
+            @AuthenticationPrincipal UsuarioDTO usuario
     ) {
 
-        if (!permissaoService.podeAcessarProjeto(usuarioId, projId)) {
+        // 4. USE O ID DE USUÁRIO REAL
+        if (!permissaoService.podeAcessarProjeto(usuario.getUsuId(), projId)) {
             throw new AcessoNaoAutorizadoException("Acesso Negado",
                     "Você não tem permissão para apagar este projeto.");
         }
