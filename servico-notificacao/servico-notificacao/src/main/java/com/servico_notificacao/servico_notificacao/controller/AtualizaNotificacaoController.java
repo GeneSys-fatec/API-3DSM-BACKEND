@@ -26,13 +26,30 @@ public class AtualizaNotificacaoController {
     private UsuarioClient usuarioClient;
 
     @PutMapping("/marcar-lida/{id}")
-    public ResponseEntity<Void> marcarComoLida(@PathVariable String id) {
+    public ResponseEntity<Void> marcarComoLida(@PathVariable String id,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
+        // Se não autenticado, apenas ignora (temporário para não forçar redirect) e retorna 204.
+        if (authorization == null || authorization.isBlank()) {
+            return ResponseEntity.noContent().build();
+        }
+        try {
+            UsuarioDTO usuario = usuarioClient.getUsuarioSessao(authorization);
+            if (usuario == null || usuario.getUsuId() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.noContent().build();
+        }
         marcaComoLidaNotificacaoService.marcarComoLida(id);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/marcar-todas")
-    public ResponseEntity<Void> marcarTodasComoLidas(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public ResponseEntity<Void> marcarTodasComoLidas(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
+        if (authorization == null || authorization.isBlank()) {
+            return ResponseEntity.noContent().build();
+        }
         UsuarioDTO usuario = usuarioClient.getUsuarioSessao(authorization);
         if (usuario == null || usuario.getUsuId() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

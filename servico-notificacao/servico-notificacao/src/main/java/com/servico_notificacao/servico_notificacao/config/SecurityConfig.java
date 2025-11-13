@@ -33,8 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Temporariamente libera listar para validar frontend sem token.
                 .requestMatchers("/notificacao/listar").permitAll()
-                // Exige auth para alterações.
-                .requestMatchers("/notificacao/marcar-todas", "/notificacao/marcar-lida/**").authenticated()
+                // Temporariamente também liberamos marcar-todas e marcar-lida para evitar redirecionar login ao abrir dropdown.
+                .requestMatchers("/notificacao/marcar-todas", "/notificacao/marcar-lida/**").permitAll()
                 // Swagger e utilidades
                 .requestMatchers(
                     "/swagger-ui/**",
