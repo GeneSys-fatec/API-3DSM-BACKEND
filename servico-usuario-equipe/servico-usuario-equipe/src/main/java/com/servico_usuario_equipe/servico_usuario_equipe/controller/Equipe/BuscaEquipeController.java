@@ -90,16 +90,13 @@ public class BuscaEquipeController {
     }
     @GetMapping("/buscar-ids-por-usuario/{usuarioId}")
     public ResponseEntity<List<String>> getEquipeIdsPorUsuario(@PathVariable String usuarioId) {
-        
-        // 1. Reutiliza seu service que já busca os Modelos de equipe
+
         List<EquipeModel> equipes = buscaEquipeService.getEquipesPorIdUsuario(usuarioId);
 
-        // 2. Transforma a List<EquipeModel> em uma List<String> (só os IDs)
         List<String> ids = equipes.stream()
-                                  .map(EquipeModel::getEquId) // Pega só o ID de cada equipe
+                                  .map(EquipeModel::getEquId) 
                                   .collect(Collectors.toList());
-        
-        // 3. Retorna a lista de IDs
+    
         return ResponseEntity.ok(ids);
     }
 }

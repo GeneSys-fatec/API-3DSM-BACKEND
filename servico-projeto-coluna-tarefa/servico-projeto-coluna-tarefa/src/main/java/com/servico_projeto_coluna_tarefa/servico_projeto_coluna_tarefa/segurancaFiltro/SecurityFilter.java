@@ -49,8 +49,8 @@ public class SecurityFilter extends OncePerRequestFilter {
                 var login = validaTokenService.validateToken(decryptedToken);
 
                 UsuarioDTO usuario = userWebClient.get()
-                .uri("/auth/session") // <-- 1. Chame a rota de sessão
-                .cookie("jwt-token", token) // <-- 2. Passe o token criptografado no cookie
+                .uri("/auth/session")
+                .cookie("jwt-token", token)
                 .retrieve()
                 .bodyToMono(UsuarioDTO.class)
                 .block();

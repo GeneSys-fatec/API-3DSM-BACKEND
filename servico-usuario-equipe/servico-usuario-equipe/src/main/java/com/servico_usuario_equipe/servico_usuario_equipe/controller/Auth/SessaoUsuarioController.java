@@ -23,19 +23,15 @@ public class SessaoUsuarioController {
 
     @GetMapping("/session")
     public ResponseEntity<UsuarioDTO> checkSession(
-            // 1. Receba o UsuarioModel que o filtro colocou no contexto
             @AuthenticationPrincipal UsuarioModel usuarioModel
     ) {
         
         if (usuarioModel == null) {
-            // Isso não deve acontecer se o filtro funcionar, mas é uma boa defesa
              return ResponseEntity.status(401).build();
         }
 
-        // 2. Converta o Model para DTO usando o Converter
         UsuarioDTO usuarioDTO = usuarioconverter.modelParaDto(usuarioModel);
         
-        // 3. Retorne o DTO
         return ResponseEntity.ok(usuarioDTO);
     }
 }

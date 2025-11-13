@@ -41,8 +41,7 @@ public class BuscaEquipeService {
     }
 
     public boolean isUsuarioMembro(String equId, String usuId) {
-    EquipeModel equipe = this.getEquipeById(equId); // 1. Busca a equipe
-    // 2. Filtra a lista de usuários em Java
+    EquipeModel equipe = this.getEquipeById(equId);
     return equipe.getUsuarios().stream()
         .anyMatch(usuario -> usuario.getUsuId().equals(usuId));
 }

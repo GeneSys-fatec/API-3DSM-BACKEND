@@ -3,6 +3,7 @@ package com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,14 @@ public class BuscaTarefaService {
         if (projId == null || projId.isEmpty()) {
             return Collections.emptyList();
         }
-        return tarefaRepository.findByProjId(projId);
+        
+        List<TarefaModel> todasAsTarefas = tarefaRepository.findAll();
+
+        return todasAsTarefas.stream()
+            .filter(tarefa -> projId.equals(tarefa.getProjId()))
+            .collect(Collectors.toList());
     }
+
 
     public Optional<TarefaModel> buscarPorId(String id) {
         return tarefaRepository.findById(id);

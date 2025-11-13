@@ -40,11 +40,8 @@ public class BuscaProjetoController {
 
     @GetMapping("/meus-projetos")
     public ResponseEntity<List<ProjetoDTO>> listarProjetosDoUsuario(
-            // 3. INJETE O USUÁRIO REAL
             @AuthenticationPrincipal UsuarioDTO usuario
     ) {
-        // 4. USE O ID DE USUÁRIO REAL
-        // (Nota: seu "buscaProjetoService.listarPorUsuario" deve aceitar um String ID)
         List<ProjetoModel> projetos = buscaProjetoService.listarPorUsuario(usuario.getUsuId());
         
         List<ProjetoDTO> dtos = projetos.stream()

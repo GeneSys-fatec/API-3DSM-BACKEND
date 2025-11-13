@@ -12,24 +12,15 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.CredenciaisInvalidasException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.TokenCriacaoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.TokenInvalidoException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.comentário.ComentarioEmBrancoException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.comentário.ConteudoInapropriadoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.AcessoNaoAutorizadoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.CriadorNaoPodeSairException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.EquipeNaoEncontradaException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.EquipeSemInformacaoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.NomeDeEquipeJaExisteException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.UsuarioNaoEMembroException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.métricas.DashboardSemDadosException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.projetos.ProjetoNaoEncontradoException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.projetos.ProjetoSemInformacaoException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.tarefas.AnexoTamanhoExcedente;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.tarefas.InvalidTaskDataException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.usuário.EmailJaCadastradoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.usuário.UsuarioNaoEncontradoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.model.dto.ErroRespostaDTO;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.coluna.NomeDeColunaJaExisteException;
-import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.coluna.LimiteDeColunasExcedidoException;
 
 @ControllerAdvice
 public class ManipuladorGlobal {
@@ -81,26 +72,6 @@ public class ManipuladorGlobal {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 
-    // ProjetoNãoEncontradoException
-    @ExceptionHandler(ProjetoNaoEncontradoException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularProjetoNaoEncontrado(ProjetoNaoEncontradoException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
-    }
-
-    // ProjetoSemInformacaoException
-    @ExceptionHandler(ProjetoSemInformacaoException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularProjetoSemInformacao(ProjetoSemInformacaoException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
-    }
-
-    // InvalidTaskDataException
-    @ExceptionHandler(InvalidTaskDataException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularInvalidTaskData(InvalidTaskDataException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
-    }
 
     // EquipeNaoEncontradaException
     @ExceptionHandler(EquipeNaoEncontradaException.class)
@@ -140,49 +111,10 @@ public class ManipuladorGlobal {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
 
-    // AnexoTamanhoExcedente
-    @ExceptionHandler(AnexoTamanhoExcedente.class)
-    public ResponseEntity<ErroRespostaDTO> manipularAnexoTamanhoExcedente(AnexoTamanhoExcedente ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(erro);
-    }
-
     // Quando o limite do multipart do servidor é excedido (antes do controller)
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErroRespostaDTO> manipularUploadExcedido(MaxUploadSizeExceededException ex) {
         ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), "O tamanho do arquivo excede o limite permitido.");
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(erro);
-    }
-
-    // ComentarioEmBrancoException
-    @ExceptionHandler(ComentarioEmBrancoException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularComentarioEmBranco(ComentarioEmBrancoException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
-    }
-
-    // ConteudoInapropriadoException
-    @ExceptionHandler(ConteudoInapropriadoException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularComentarioInapropriado(ConteudoInapropriadoException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
-    }
-
-    @ExceptionHandler(NomeDeColunaJaExisteException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularNomeDeColunaJaExiste(NomeDeColunaJaExisteException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro); // 409
-    }
-
-    @ExceptionHandler(LimiteDeColunasExcedidoException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularLimiteDeColunas(LimiteDeColunasExcedidoException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro); // 400
-    }
-
-    @ExceptionHandler(DashboardSemDadosException.class)
-    public ResponseEntity<ErroRespostaDTO> manipularDashboardSemDados(DashboardSemDadosException ex) {
-        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 }
