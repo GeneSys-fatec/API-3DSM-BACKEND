@@ -21,20 +21,20 @@ public class CookieService {
 
         return ResponseCookie.from("jwt-token", encryptedToken) 
             .httpOnly(true) 
-            .secure(true) 
+            .secure(false) 
             .path("/")     
             .maxAge(2 * 60 * 60) 
-            .sameSite("None")
+            .sameSite("Lax")
             .build();
     }    
 
     public ResponseCookie createExpiredCookie() {
         return ResponseCookie.from("jwt-token", "")
             .httpOnly(true)
-            .secure(true)
+            .secure(false)
             .path("/")
             .maxAge(0) 
-            .sameSite("None")
+            .sameSite("Lax")
             .build();
     }
 
