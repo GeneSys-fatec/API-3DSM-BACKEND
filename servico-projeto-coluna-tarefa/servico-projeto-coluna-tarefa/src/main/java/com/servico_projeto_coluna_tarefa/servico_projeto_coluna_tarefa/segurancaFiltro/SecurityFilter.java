@@ -49,10 +49,11 @@ public class SecurityFilter extends OncePerRequestFilter {
                 var login = validaTokenService.validateToken(decryptedToken);
 
                 UsuarioDTO usuario = userWebClient.get()
-                    .uri("/usuario/buscar/" + login)
-                    .retrieve()
-                    .bodyToMono(UsuarioDTO.class)
-                    .block(); // .block() é OK aqui pois filtros são síncronos
+                .uri("/auth/session") // <-- 1. Chame a rota de sessão
+                .cookie("jwt-token", token) // <-- 2. Passe o token criptografado no cookie
+                .retrieve()
+                .bodyToMono(UsuarioDTO.class)
+                .block();
 
                 if (usuario == null) {
                     throw new RuntimeException("Usuário não encontrado no user-service");

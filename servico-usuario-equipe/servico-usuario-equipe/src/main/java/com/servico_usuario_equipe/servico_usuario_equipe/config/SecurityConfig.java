@@ -24,22 +24,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain rotas(HttpSecurity http) throws Exception {
         http
-        .cors(cors -> cors.disable())
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.POST,"/auth/cadastrar").permitAll()
-            .requestMatchers(HttpMethod.POST,"usuario/buscar/{usuEmail}").permitAll()
-            .requestMatchers(HttpMethod.GET, "/equipes/interno/validar-membro").permitAll()
-            .requestMatchers(
-				        "/boasvindas",
-				        "/swagger-ui/**",
-				        "/v3/api-docs/**",
-				        "/swagger-ui.html"
-				 ).permitAll()
-            .anyRequest().authenticated())
-        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+            .cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST,"/auth/cadastrar").permitAll()
+                .requestMatchers(HttpMethod.GET, "/auth/session").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/usuario/buscar/**").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/equipe/interno/validar-membro").permitAll()
+                .requestMatchers(HttpMethod.GET, "/equipe/buscar-ids-por-usuario/**").permitAll()
+                .requestMatchers(
+                        "/boasvindas",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html"
+                 ).permitAll()
+                .anyRequest().authenticated())
+            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
     
@@ -47,5 +49,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

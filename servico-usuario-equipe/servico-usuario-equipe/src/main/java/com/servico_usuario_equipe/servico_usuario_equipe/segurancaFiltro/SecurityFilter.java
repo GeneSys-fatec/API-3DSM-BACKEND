@@ -1,13 +1,16 @@
 package com.servico_usuario_equipe.servico_usuario_equipe.segurancaFiltro;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.usuário.UsuarioNaoEncontradoException;
@@ -30,6 +33,24 @@ public class SecurityFilter extends OncePerRequestFilter {
     UsuarioRepository usuarioRepository;
     @Autowired
     CookieService cookieService;
+
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+            "/auth/cadastrar",
+            "/equipe/buscar-ids-por-usuario/**", 
+            "/equipe/interno/validar-membro", 
+            "/boasvindas",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html"
+    );
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return PUBLIC_PATHS.stream()
+                .anyMatch(p -> pathMatcher.match(p, request.getServletPath()));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

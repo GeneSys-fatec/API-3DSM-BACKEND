@@ -6,12 +6,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-// 1. IMPORTAÇÃO REAL
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-// import org.springframework.web.bind.annotation.RequestHeader; // <-- REMOVIDO
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +19,6 @@ import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.exception
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.AdicionadorLinkProjetos;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.converter.ProjetoConverter;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.ProjetoDTO;
-// 2. IMPORTE SEU DTO "ESPELHO"
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.UsuarioDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ProjetoModel;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.PermissaoService;
@@ -60,10 +57,8 @@ public class BuscaProjetoController {
     @GetMapping("/{projId}")
     public ResponseEntity<ProjetoDTO> buscarPorId(
             @PathVariable String projId,
-            // 3. INJETE O USUÁRIO REAL
             @AuthenticationPrincipal UsuarioDTO usuario
     ) {
-        // 4. USE O ID DE USUÁRIO REAL
         if (!permissaoService.podeAcessarProjeto(usuario.getUsuId(), projId)) {
             throw new AcessoNaoAutorizadoException("Acesso Negado", "Você não tem permissão para ver este projeto.");
         }

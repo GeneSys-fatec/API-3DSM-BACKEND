@@ -8,8 +8,10 @@ import java.util.List;
 
 public interface ProjetoRepository extends MongoRepository<ProjetoModel, String> {
 
-    @Query("{ 'equipeId': { $in: ?0 } }")
-    List<ProjetoModel> findByEquipeIdIn(List<String> equipeIds);
+    @Query("{ 'equId': { $in: ?0 } }")
+    List<ProjetoModel> findByequIdIn(List<String> equIds);
 
     List<ProjetoModel> findAllByProjIdIn(List<String> ids);
+
+    List<ProjetoModel> findAllByEquIdIn(List<String> equipeIds);
 }

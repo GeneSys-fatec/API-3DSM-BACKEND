@@ -40,11 +40,10 @@ public class BuscaEquipeService {
         return equipeRepository.findByUsuariosUsuId(usuario.getUsuId());
     }
 
-    public boolean isUsuarioMembro(String equipeId, String usuarioId) {
-        
-        EquipeModel equipe = this.getEquipeById(equipeId);
-        
-        return equipe.getUsuarios().stream()
-            .anyMatch(usuario -> usuario.getUsuId().equals(usuarioId));
-    }
+    public boolean isUsuarioMembro(String equId, String usuId) {
+    EquipeModel equipe = this.getEquipeById(equId); // 1. Busca a equipe
+    // 2. Filtra a lista de usuários em Java
+    return equipe.getUsuarios().stream()
+        .anyMatch(usuario -> usuario.getUsuId().equals(usuId));
+}
 }

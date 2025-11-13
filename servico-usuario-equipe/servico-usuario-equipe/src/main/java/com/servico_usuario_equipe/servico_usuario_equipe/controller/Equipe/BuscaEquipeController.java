@@ -82,10 +82,24 @@ public class BuscaEquipeController {
 
     @GetMapping("/interno/validar-membro")
     public ResponseEntity<Boolean> isUsuarioMembro(
-            @RequestParam("usuarioId") String usuarioId,
-            @RequestParam("equipeId") String equipeId) {
+            @RequestParam("usuId") String usuId,
+            @RequestParam("equId") String equId) {
 
-        boolean isMembro = buscaEquipeService.isUsuarioMembro(equipeId, usuarioId);
+        boolean isMembro = buscaEquipeService.isUsuarioMembro(equId, usuId);
         return ResponseEntity.ok(isMembro);
+    }
+    @GetMapping("/buscar-ids-por-usuario/{usuarioId}")
+    public ResponseEntity<List<String>> getEquipeIdsPorUsuario(@PathVariable String usuarioId) {
+        
+        // 1. Reutiliza seu service que já busca os Modelos de equipe
+        List<EquipeModel> equipes = buscaEquipeService.getEquipesPorIdUsuario(usuarioId);
+
+        // 2. Transforma a List<EquipeModel> em uma List<String> (só os IDs)
+        List<String> ids = equipes.stream()
+                                  .map(EquipeModel::getEquId) // Pega só o ID de cada equipe
+                                  .collect(Collectors.toList());
+        
+        // 3. Retorna a lista de IDs
+        return ResponseEntity.ok(ids);
     }
 }

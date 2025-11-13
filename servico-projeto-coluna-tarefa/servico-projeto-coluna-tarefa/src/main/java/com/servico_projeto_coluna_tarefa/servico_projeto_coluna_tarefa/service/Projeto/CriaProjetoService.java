@@ -16,9 +16,9 @@ public class CriaProjetoService {
 
     
 
-    public ProjetoModel criarNovoProjeto(ProjetoModel projeto, String equipeId) {
+    public ProjetoModel criarNovoProjeto(ProjetoModel projeto, String equId) {
         
-        projeto.setEquipeId(equipeId); 
+        projeto.setEquId(equId); 
 
         ProjetoModel projetoSalvo = projetoRepository.save(projeto);
 

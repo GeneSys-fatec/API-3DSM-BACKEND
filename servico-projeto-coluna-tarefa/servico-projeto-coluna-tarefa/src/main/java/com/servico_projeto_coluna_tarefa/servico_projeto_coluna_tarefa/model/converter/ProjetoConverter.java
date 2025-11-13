@@ -14,7 +14,7 @@ public class ProjetoConverter {
         model.setProjDescricao(dto.getProjDescricao());
         model.setProjStatus(dto.getProjStatus());
 
-        model.setEquipeId(dto.getEquId());
+        model.setEquId(dto.getEquId());
 
         return model;
     }
@@ -29,8 +29,8 @@ public class ProjetoConverter {
         dto.setProjDataCriacao(model.getProjDataCriacao());
         dto.setProjDataAtualizacao(model.getProjDataAtualizacao());
 
-        if (model.getEquipeId() != null) {
-            dto.setEquId(model.getEquipeId());
+        if (model.getEquId() != null) {
+            dto.setEquId(model.getEquId());
         }
 
         return dto;

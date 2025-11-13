@@ -44,19 +44,19 @@ public class CriaProjetoController {
             throw new ProjetoSemInformacaoException("Erro ao cadastrar projeto", "Nome do projeto é obrigatório.");
         }
     
-        String equipeId = dto.getEquId();
-        if (equipeId == null || equipeId.isBlank()) {
+        String equId = dto.getEquId();
+        if (equId == null || equId.isBlank()) {
             throw new ProjetoSemInformacaoException("Erro ao cadastrar projeto", "A equipe do projeto (equId) é obrigatória.");
         }
     
         // 4. USE O ID DE USUÁRIO REAL
-        if (!permissaoService.podeCriarProjetosNaEquipe(usuario.getUsuId(), equipeId)) {
+        if (!permissaoService.podeCriarProjetosNaEquipe(usuario.getUsuId(), equId)) {
             throw new AcessoNaoAutorizadoException("Acesso Negado",
                     "Você não tem permissão para criar projetos nesta equipe.");
         }
 
         ProjetoModel projeto = projetoConverter.dtoParaModel(dto);
-        criaProjetoService.criarNovoProjeto(projeto, equipeId);
+        criaProjetoService.criarNovoProjeto(projeto, equId);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

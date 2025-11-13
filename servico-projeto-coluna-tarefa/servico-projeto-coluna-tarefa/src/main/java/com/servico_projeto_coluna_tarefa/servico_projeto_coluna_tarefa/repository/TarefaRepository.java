@@ -20,7 +20,7 @@ public interface TarefaRepository extends MongoRepository<TarefaModel, String> {
 
     List<TarefaModel> findByTarPrazoBeforeAndTarStatusNot(LocalDate tarPrazo, String status);
 
-    List<TarefaModel> findByResponsaveisUsuId(String usuarioId);
+    List<TarefaModel> findByResponsaveisUsuId(String usuId);
 
     // --- NOVO MÉTODO ADICIONADO ---
     // (O Spring Data MongoDB cria a query automaticamente pelo nome do método)

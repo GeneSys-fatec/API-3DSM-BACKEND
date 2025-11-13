@@ -30,7 +30,7 @@ public class BuscaTarefaService {
         return tarefaRepository.findById(id);
     }
 
-    public List<TarefaModel> listarTarefasPorResponsavel(String usuarioId) {
-        return tarefaRepository.findByResponsaveisUsuId(usuarioId);
+    public List<TarefaModel> listarTarefasPorResponsavel(String usuId) {
+        return tarefaRepository.findByResponsaveisUsuId(usuId);
     }
 }

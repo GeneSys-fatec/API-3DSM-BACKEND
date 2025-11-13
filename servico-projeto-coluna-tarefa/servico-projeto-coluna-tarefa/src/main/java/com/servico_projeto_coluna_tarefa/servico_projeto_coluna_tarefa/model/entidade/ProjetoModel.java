@@ -19,5 +19,5 @@ public class ProjetoModel {
     private String projDataCriacao;
     private String projDataAtualizacao;
 
-    private String equipeId;
+    private String equId;
 }
