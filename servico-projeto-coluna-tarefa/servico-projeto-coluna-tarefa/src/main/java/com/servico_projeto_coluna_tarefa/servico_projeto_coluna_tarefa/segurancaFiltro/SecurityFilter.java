@@ -34,6 +34,16 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getServletPath();
+        System.out.println("[SecurityFilter] Path: " + path);
+
+        if (path.startsWith("/api/tasks-data/")) {
+            // --- LOG 6 ---
+            System.out.println("[SecurityFilter] Path /api/tasks-data/ detetado. A ignorar.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
@@ -49,16 +59,16 @@ public class SecurityFilter extends OncePerRequestFilter {
                 var login = validaTokenService.validateToken(decryptedToken);
 
                 UsuarioDTO usuario = userWebClient.get()
-                .uri("/auth/session")
-                .cookie("jwt-token", token)
-                .retrieve()
-                .bodyToMono(UsuarioDTO.class)
-                .block();
+                        .uri("/auth/session")
+                        .cookie("jwt-token", token)
+                        .retrieve()
+                        .bodyToMono(UsuarioDTO.class)
+                        .block();
 
                 if (usuario == null) {
                     throw new RuntimeException("Usuário não encontrado no user-service");
                 }
-                
+
                 var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
                 var authentication = new UsernamePasswordAuthenticationToken(usuario, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
