@@ -21,6 +21,8 @@ public class CriaTokenService {
         return JWT.create()
                 .withIssuer("taskmngr-backend")
                 .withSubject(usuarioModel.getUsuEmail())
+                .withClaim("usuId", usuarioModel.getUsuId())
+                .withClaim("usuNome", usuarioModel.getUsuNome())
                 .withExpiresAt(this.generateExpirationDate())
                 .sign(algorithm);
     }

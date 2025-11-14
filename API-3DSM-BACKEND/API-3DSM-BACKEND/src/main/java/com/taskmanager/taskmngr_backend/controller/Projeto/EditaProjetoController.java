@@ -16,7 +16,7 @@ import com.taskmanager.taskmngr_backend.service.Projeto.EditaProjetoService;
 
 @RestController
 @RequestMapping("/projeto")
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*")
+
 public class EditaProjetoController {
     @Autowired
     private EditaProjetoService editaProjetoService;

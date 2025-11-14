@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/equipe")
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
+
 public class ExcluiEquipeController {
     @Autowired
     private ExcluiEquipeService excluiEquipeService;

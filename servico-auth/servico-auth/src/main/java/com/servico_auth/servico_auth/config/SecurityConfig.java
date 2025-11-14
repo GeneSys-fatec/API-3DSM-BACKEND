@@ -20,13 +20,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain rotas(HttpSecurity http) throws Exception {
         http
-        .cors(cors -> {})
+        .cors(cors -> cors.disable())
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
-            .requestMatchers(HttpMethod.POST,"/auth/logout").permitAll()
             .requestMatchers(
 				        "/boasvindas",
 				        "/login/usuario",

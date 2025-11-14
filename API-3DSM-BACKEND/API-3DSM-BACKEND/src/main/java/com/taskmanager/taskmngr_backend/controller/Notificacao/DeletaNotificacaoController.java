@@ -8,7 +8,7 @@ import com.taskmanager.taskmngr_backend.service.Notificacao.ExcluiNotificacaoSer
 
 @RestController
 @RequestMapping("/notificacao")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class DeletaNotificacaoController {
 
     @Autowired

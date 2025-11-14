@@ -15,7 +15,7 @@ import com.taskmanager.taskmngr_backend.service.Projeto.ExcluiProjetoService;
 
 @RestController
 @RequestMapping("/projeto")
-@CrossOrigin(origins = "http://localhost:5173/", allowedHeaders = "*")
+
 public class ExcluiProjetoController {
     @Autowired
     private ExcluiProjetoService excluiProjetoService;
