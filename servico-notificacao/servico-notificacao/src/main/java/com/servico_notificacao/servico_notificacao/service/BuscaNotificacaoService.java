@@ -25,6 +25,13 @@ public class BuscaNotificacaoService {
 
     public List<NotificacaoModel> listarPorUsuario(String usuarioId) {
         if (usuarioId == null || usuarioId.isBlank()) {
+
+            // --- ADICIONE ESTE TESTE DE LOG ---
+            System.out.println("\n--- DEBUG NOTIFICAÇÃO [SERVICE] ---");
+            System.out.println("ID do usuário chegou NULO ou VAZIO.");
+            System.out.println("-------------------------------------\n");
+            // --- FIM DO TESTE ---
+
             return Collections.emptyList();
         }
         return repository.findByNotUsuarioIdOrderByNotDataCriacaoDesc(usuarioId);

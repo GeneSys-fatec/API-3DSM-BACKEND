@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier; // NOVO IMPORT
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,8 +26,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     ValidaTokenService validaTokenService;
+
+    // --- INÍCIO DA CORREÇÃO ---
     @Autowired
-    WebClient userWebClient;
+    @Qualifier("usuarioWebClient") // Diz ao Spring para usar o bean com o nome "usuarioWebClient"
+            WebClient userWebClient;
+    // --- FIM DA CORREÇÃO ---
+
     @Autowired
     CookieService cookieService;
 
@@ -34,12 +40,9 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // O seu 'if' para ignorar a API interna
         String path = request.getServletPath();
-        System.out.println("[SecurityFilter] Path: " + path);
-
         if (path.startsWith("/api/tasks-data/")) {
-            // --- LOG 6 ---
-            System.out.println("[SecurityFilter] Path /api/tasks-data/ detetado. A ignorar.");
             filterChain.doFilter(request, response);
             return;
         }
@@ -58,6 +61,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
                 var login = validaTokenService.validateToken(decryptedToken);
 
+                // Esta chamada agora usa o WebClient correto
                 UsuarioDTO usuario = userWebClient.get()
                         .uri("/auth/session")
                         .cookie("jwt-token", token)

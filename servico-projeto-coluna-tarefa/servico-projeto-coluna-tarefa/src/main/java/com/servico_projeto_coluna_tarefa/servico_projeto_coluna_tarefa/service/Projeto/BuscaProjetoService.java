@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -22,6 +23,7 @@ public class BuscaProjetoService {
     private ProjetoConverter projetoConverter;
 
     @Autowired
+    @Qualifier("usuarioWebClient")
     private WebClient userWebClient;
 
     public List<ProjetoModel> listarPorUsuario(String usuId) {

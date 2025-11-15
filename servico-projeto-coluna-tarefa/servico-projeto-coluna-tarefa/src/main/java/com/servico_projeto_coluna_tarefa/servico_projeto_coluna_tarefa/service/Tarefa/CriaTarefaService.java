@@ -9,25 +9,30 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.client.NotificacaoClient;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.client.UsuarioClient;
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.NotificacaoRequestDTO;
 
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.converter.TarefaConverter;
-
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.TarefaDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.UsuarioDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ResponsavelTarefa;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.TarefaModel;
-
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.repository.TarefaRepository;
-
 
 @Service
 public class CriaTarefaService {
     @Autowired
     private TarefaConverter tarefaConverter;
 
-
     @Autowired
     private TarefaRepository tarefaRepository;
+
+    @Autowired
+    private NotificacaoClient notificacaoClient;
+
+    @Autowired
+    private UsuarioClient usuarioClient;
 
     private static final char[] BASE32HEX = "0123456789abcdefghijklmnopqrstuv".toCharArray();
     private static final SecureRandom RNG = new SecureRandom();
@@ -35,13 +40,16 @@ public class CriaTarefaService {
     public TarefaModel criarTarefa(TarefaDTO dto, UsuarioDTO usuarioLogado) {
         TarefaModel tarefa = tarefaConverter.dtoParaModel(dto);
 
+        List<ResponsavelTarefa> responsaveisEntidade;
+
         if (dto.getResponsaveis() != null && !dto.getResponsaveis().isEmpty()) {
-            List<ResponsavelTarefa> responsaveisEntidade = dto.getResponsaveis().stream()
+            responsaveisEntidade = dto.getResponsaveis().stream()
                     .map(dtoResp -> new ResponsavelTarefa(dtoResp.getUsuId(), dtoResp.getUsuNome()))
                     .collect(Collectors.toList());
             tarefa.setResponsaveis(responsaveisEntidade);
         } else {
             tarefa.setResponsaveis(new ArrayList<>());
+            responsaveisEntidade = new ArrayList<>();
         }
 
         if (tarefa.getGoogleId() == null || tarefa.getGoogleId().isBlank()) {
@@ -49,21 +57,41 @@ public class CriaTarefaService {
         }
 
         if ("Concluída".equalsIgnoreCase(tarefa.getTarStatus())) {
-            String dataConclusao = LocalDate.now().toString();
-            tarefa.setTarDataConclusao(dataConclusao);
+        }
 
+        TarefaModel tarefaCriada = tarefaRepository.save(tarefa);
+
+        System.out.println("\n[CriaTarefaService] Tarefa criada. A verificar notificações...");
+
+        if (usuarioLogado != null) {
             try {
-                LocalDate prazo = LocalDate.parse(tarefa.getTarPrazo());
-                LocalDate conclusao = LocalDate.parse(dataConclusao);
-                tarefa.setConcluidaNoPrazo(!conclusao.isAfter(prazo));
-            } catch (DateTimeParseException e) {
-                tarefa.setConcluidaNoPrazo(false);
+                System.out.println("[CriaTarefaService] Criador da Tarefa: " + usuarioLogado.getUsuNome());
+
+                for (ResponsavelTarefa responsavel : responsaveisEntidade) {
+                    System.out.println("[CriaTarefaService] A verificar responsável: " + responsavel.getUsuNome());
+
+                    if (!responsavel.getUsuId().equals(usuarioLogado.getUsuId())) {
+
+                        System.out.println("[CriaTarefaService] DETETADA NOVA ATRIBUIÇÃO! A enviar notificação para: " + responsavel.getUsuNome());
+
+                        NotificacaoRequestDTO notificacaoDTO = new NotificacaoRequestDTO(
+                                usuarioLogado.getUsuId(),
+                                responsavel.getUsuId(),
+                                usuarioLogado.getUsuNome(),
+                                tarefaCriada.getTarId(),
+                                tarefaCriada.getTarTitulo()
+                        );
+
+                        notificacaoClient.criarNotificacaoAtribuicao(notificacaoDTO);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("AVISO: Falha ao enviar notificação de atribuição na criação da tarefa. Erro: " + e.getMessage());
             }
         }
 
-        return tarefaRepository.save(tarefa);
+        return tarefaCriada;
     }
-
 
     public String generateGoogleEventId() {
         String prefix = "taskmngr";
@@ -77,4 +105,5 @@ public class CriaTarefaService {
         }
         return new String(buf);
     }
+
 }

@@ -3,6 +3,7 @@ package com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -26,6 +27,7 @@ public class PermissaoService {
     private ColunaRepository colunaRepository;
 
     @Autowired
+    @Qualifier("usuarioWebClient")
     private WebClient userWebClient;
 
     public boolean podeAcessarProjeto(String usuId, String projetoId) {

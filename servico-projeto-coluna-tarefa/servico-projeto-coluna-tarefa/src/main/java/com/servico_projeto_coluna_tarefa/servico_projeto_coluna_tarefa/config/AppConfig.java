@@ -9,12 +9,26 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class AppConfig {
 
     @Value("${usuario.service.url}")
-    private String projetoServiceUrl;
+    private String usuarioServiceUrl;
+
+    @Value("${notificacao.service.url}")
+    private String notificacaoServiceUrl;
+
+    @Value("${internal.api.key}")
+    private String apiKey;
 
     @Bean
     public WebClient usuarioWebClient() {
         return WebClient.builder()
-            .baseUrl(projetoServiceUrl)
-            .build();
+                .baseUrl(usuarioServiceUrl)
+                .build();
+    }
+
+    @Bean
+    public WebClient notificacaoWebClient() {
+        return WebClient.builder()
+                .baseUrl(notificacaoServiceUrl)
+                .defaultHeader("X-Internal-API-Key", apiKey)
+                .build();
     }
 }
