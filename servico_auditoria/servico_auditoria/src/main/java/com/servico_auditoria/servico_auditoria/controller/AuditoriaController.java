@@ -1,4 +1,4 @@
-package main.java.com.servico_auditoria.servico_auditoria.controller;
+package com.servico_auditoria.servico_auditoria.controller;
 
 import java.util.List;
 
@@ -17,56 +17,70 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.servico_auditoria.servico_auditoria.model.AuditoriaEvento;
-import com.servico_auditoria.servico_auditoria.repository.AuditoriaRepository;
+import com.servico_auditoria.servico_auditoria.model.AuditoriaLog;
+import com.servico_auditoria.servico_auditoria.model.dto.AuditoriaResponseDto;
+import com.servico_auditoria.servico_auditoria.model.dto.ModificacaoLogDto;
+import com.servico_auditoria.servico_auditoria.repository.AuditoriaLogRepository;
 import com.servico_auditoria.servico_auditoria.service.AuditoriaService;
-import com.servico_auditoria.servico_auditoria.model.dto.AuditoriaEventoRequest;
+import com.servico_auditoria.servico_auditoria.service.AuditoriaService;
+// import com.servico_auditoria.servico_auditoria.model.dto.AuditoriaEventoRequest;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+
 
 @RestController
-@RequestMapping(path = "/auditoria", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/auditoria/logs", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuditoriaController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuditoriaController.class);
+    private final AuditoriaService auditoriaLogService;
 
-    private final AuditoriaRepository repository;
-    private final AuditoriaService service;
-
-    public AuditoriaController(AuditoriaRepository repository, AuditoriaService service) {
-        this.repository = repository;
-        this.service = service;
+    public AuditoriaController(AuditoriaService auditoriaLogService) {
+        this.auditoriaLogService = auditoriaLogService;
     }
 
-    // Lista eventos por projeto (ordem desc)
-    @GetMapping("/projeto/{id}")
-    public ResponseEntity<List<AuditoriaEvento>> listarPorProjeto(
-            @PathVariable("id") String projetoId,
-            @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
-        if (traceId != null) {
-            logger.info("Listando auditoria do projeto={} traceId={}", projetoId, traceId);
-        }
-        List<AuditoriaEvento> eventos = repository.findByProjetoIdOrderByDataDesc(projetoId);
-        return ResponseEntity.ok(eventos);
+    @GetMapping("/tarefa/{tarefaId}")
+    public ResponseEntity<List<AuditoriaResponseDto>> listarPorTarefa(@PathVariable String tarefaId) {
+        return ResponseEntity.ok(auditoriaLogService.listarPorTarefaId(tarefaId));
     }
 
-    // Registrar via POST opcional
-    @PostMapping(path = "/evento", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AuditoriaEvento> registrar(
-            @Validated @RequestBody AuditoriaEventoRequest req,
-            @RequestHeader(value = "X-Trace-Id", required = false) String headerTraceId,
-            @RequestHeader(value = "X-User", required = false) String headerUser) {
+    @GetMapping("/projeto/{projetoId}")
+    public ResponseEntity<List<AuditoriaResponseDto>> listarPorProjeto(@PathVariable String projetoId) {
+        return ResponseEntity.ok(auditoriaLogService.listarPorProjetoId(projetoId));
+    }
 
-        String traceId = headerTraceId != null && !headerTraceId.isBlank() ? headerTraceId : req.getTraceId();
-        String usuario = headerUser != null && !headerUser.isBlank() ? headerUser : req.getUsuario();
+    @GetMapping
+    public ResponseEntity<List<AuditoriaResponseDto>> listarTodos() {
+        return ResponseEntity.ok(auditoriaLogService.listarTodos());
+    }
 
-        AuditoriaEvento salvo = service.registrarEvento(
-                req.getProjetoId(),
-                req.getTarefaId(),
-                usuario,
-                req.getAcao(),
+    // Endpoint opcional para registrar log com modificações explícitas
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AuditoriaLog> registrar(@RequestBody @Valid RegistrarLogRequest body,
+                                                  @RequestHeader(value = "X-User", required = false) String headerUser,
+                                                  @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
+                                                  @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
+
+        String usuarioEmail = headerUser != null && !headerUser.isBlank() ? headerUser : body.responsavelEmail();
+        String usuarioId = headerUserId != null && !headerUserId.isBlank() ? headerUserId : body.responsavelId();
+
+        AuditoriaLog salvo = auditoriaLogService.registrarAtualizacao(
+                body.projetoId(),
+                body.tarefaId(),
+                body.modificacoes(),
+                usuarioId,
+                usuarioEmail,
                 traceId
         );
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CACHE_CONTROL, "no-store")
-                .body(salvo);
+        return ResponseEntity.ok(salvo);
     }
+
+    // DTO do POST
+    public record RegistrarLogRequest(
+            @NotBlank String projetoId,
+            @NotBlank String tarefaId,
+            String responsavelId,
+            String responsavelEmail,
+            List<ModificacaoLogDto> modificacoes
+    ) {}
 }

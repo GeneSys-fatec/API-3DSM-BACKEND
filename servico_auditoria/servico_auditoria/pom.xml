@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.7</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.servico_auditoria</groupId>
 	<artifactId>servico_auditoria</artifactId>
@@ -30,7 +30,6 @@
         <java.version>17</java.version>
     </properties>
     <dependencies>
-        <!-- Web + MongoDB -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -43,23 +42,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-
-        <!-- Lombok para reduzir boilerplate -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- OpenAPI UI (opcional durante desenvolvimento) -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.6.0</version>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- Testes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -68,7 +66,6 @@
     </dependencies>
 
     <build>
-
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

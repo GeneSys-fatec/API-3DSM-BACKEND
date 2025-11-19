@@ -1,4 +1,4 @@
-package main.java.com.servico_auditoria.servico_auditoria.model;
+package com.servico_auditoria.servico_auditoria.model;
 
 import java.time.LocalDateTime;
 
