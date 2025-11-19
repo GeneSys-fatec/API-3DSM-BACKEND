@@ -11,15 +11,14 @@ import com.servico_auditoria.servico_auditoria.model.dto.ModificacaoLogDto;
 import com.servico_auditoria.servico_auditoria.service.AuditoriaService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping(path = "/auditoria/logs", produces = MediaType.APPLICATION_JSON_VALUE)
-public class AuditoriaControle {
+public class AuditoriaController {
 
     private final AuditoriaService auditoriaLogService;
 
-    public AuditoriaControle(AuditoriaService auditoriaLogService) {
+    public AuditoriaController(AuditoriaService auditoriaLogService) {
         this.auditoriaLogService = auditoriaLogService;
     }
 
@@ -39,29 +38,41 @@ public class AuditoriaControle {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AuditoriaLog> registrar(@RequestBody @Valid RegistrarLogRequest body,
-                                                  @RequestHeader(value = "X-User", required = false) String headerUser,
-                                                  @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
-                                                  @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
+    public ResponseEntity<AuditoriaLog> registrar(
+            @RequestBody @Valid RegistrarLogRequest body,
+            @RequestHeader(value = "X-User", required = false) String headerUser,
+            @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
+            @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail,
+            @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
+
+        // Aceita projetoId OU tarefaId
+        if ((body.projetoId == null || body.projetoId.isBlank())
+                && (body.tarefaId == null || body.tarefaId.isBlank())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String respId = body.responsavelId != null ? body.responsavelId : headerUserId;
+        String respEmail = body.responsavelEmail != null ? body.responsavelEmail : headerUserEmail;
+        String respNomeHeader = headerUser; // opcional
 
         AuditoriaLog salvo = auditoriaLogService.registrarComContexto(
-                body.projetoId(),
-                body.tarefaId(),
-                body.responsavelId(),
-                body.responsavelEmail(),
-                body.modificacoes(),
-                headerUserId,
-                headerUser,
+                body.projetoId,
+                body.tarefaId,
+                respId,
+                respEmail,
+                body.modificacoes,
+                respId,
+                respNomeHeader,
                 traceId
         );
         return ResponseEntity.ok(salvo);
     }
 
-    public record RegistrarLogRequest(
-            @NotBlank String projetoId,
-            @NotBlank String tarefaId,
-            String responsavelId,
-            String responsavelEmail,
-            List<ModificacaoLogDto> modificacoes
-    ) {}
+    public static class RegistrarLogRequest {
+        public String projetoId;                 // opcional
+        public String tarefaId;                  // opcional
+        public String responsavelId;            // opcional
+        public String responsavelEmail;         // opcional
+        public List<ModificacaoLogDto> modificacoes;
+    }
 }

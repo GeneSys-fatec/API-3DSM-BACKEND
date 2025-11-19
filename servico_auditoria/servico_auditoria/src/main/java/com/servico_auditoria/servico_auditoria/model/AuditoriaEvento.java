@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "auditoria_eventos")
+@Document(collection = "auditoria_evento")
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,10 +20,8 @@ public class AuditoriaEvento {
 
     @Id
     private String id;
-
     @Indexed
     private String projetoId;
-
     private String tarefaId;
     private String usuario;
     private String acao;
