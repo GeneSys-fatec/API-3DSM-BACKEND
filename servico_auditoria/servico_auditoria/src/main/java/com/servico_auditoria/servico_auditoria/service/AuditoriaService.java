@@ -8,6 +8,7 @@ import com.servico_auditoria.servico_auditoria.model.dto.ResponsavelAlteracaoDto
 import com.servico_auditoria.servico_auditoria.repository.AuditoriaLogRepository;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -87,4 +88,90 @@ public class AuditoriaService {
                         ))
                 ).toList();
     }
+
+    public AuditoriaLog registrarComContexto(String projetoId,
+                                             String tarefaId,
+                                             String bodyResponsavelId,
+                                             String bodyResponsavelEmail,
+                                             List<ModificacaoLogDto> modificacoes,
+                                             String headerUserId,
+                                             String headerUser,
+                                             String traceId) {
+
+        String usuarioId = null;
+        String usuarioEmail = null;
+
+        UsuarioInfo info = tentarExtrairUsuarioDoSecurityContext();
+        if (info != null) {
+            usuarioId = info.id();
+            usuarioEmail = info.email();
+        }
+
+        if (isBlank(usuarioId) && headerUserId != null && !headerUserId.isBlank()) {
+            usuarioId = headerUserId;
+        }
+        if (isBlank(usuarioEmail) && headerUser != null && !headerUser.isBlank()) {
+            usuarioEmail = headerUser;
+        }
+
+        if (isBlank(usuarioId)) {
+            usuarioId = bodyResponsavelId;
+        }
+        if (isBlank(usuarioEmail)) {
+            usuarioEmail = bodyResponsavelEmail;
+        }
+
+        return registrarAtualizacao(projetoId, tarefaId, modificacoes, usuarioId, usuarioEmail, traceId);
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
+
+    // Não depende de spring-security em compilação; usa reflexão se estiver no classpath.
+    private UsuarioInfo tentarExtrairUsuarioDoSecurityContext() {
+        try {
+            Class<?> schClass = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
+            Object context = schClass.getMethod("getContext").invoke(null);
+            if (context == null) return null;
+
+            Object auth = context.getClass().getMethod("getAuthentication").invoke(context);
+            if (auth == null) return null;
+
+            Object principal = auth.getClass().getMethod("getPrincipal").invoke(auth);
+            if (principal == null) return null;
+
+            String id = invokeIfExists(principal, "id");
+            String email = firstNonBlank(
+                invokeIfExists(principal, "email"),
+                invokeIfExists(principal, "getEmail"),
+                invokeIfExists(principal, "nome"),
+                invokeIfExists(principal, "getUsername")
+            );
+
+            if (isBlank(id) && isBlank(email)) return null;
+            return new UsuarioInfo(id, email);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private String invokeIfExists(Object target, String methodName) {
+        try {
+            Method m = target.getClass().getMethod(methodName);
+            Object v = m.invoke(target);
+            return v != null ? v.toString() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String firstNonBlank(String... vals) {
+        for (String v : vals) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
+    }
+
+    private record UsuarioInfo(String id, String email) {}
 }

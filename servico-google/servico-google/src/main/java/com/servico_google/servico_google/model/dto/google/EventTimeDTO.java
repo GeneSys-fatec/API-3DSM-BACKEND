@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventTimeDTO {
-    // Preencha apenas um: date (YYYY-MM-DD) OU dateTime (ISO 8601)
     private String date;
     private String dateTime;
     private String timeZone; // opcional
