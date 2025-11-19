@@ -1,11 +1,13 @@
 package com.servico_auditoria.servico_auditoria.service;
 
+import com.servico_auditoria.servico_auditoria.model.AuditoriaEvento;
 import com.servico_auditoria.servico_auditoria.model.AuditoriaLog;
 import com.servico_auditoria.servico_auditoria.model.dto.AuditoriaResponseDto;
 import com.servico_auditoria.servico_auditoria.model.dto.CategoriaModificacao;
 import com.servico_auditoria.servico_auditoria.model.dto.ModificacaoLogDto;
 import com.servico_auditoria.servico_auditoria.model.dto.ResponsavelAlteracaoDto;
 import com.servico_auditoria.servico_auditoria.repository.AuditoriaLogRepository;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
@@ -13,35 +15,68 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuditoriaService {
 
     private final AuditoriaLogRepository auditoriaLogRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public AuditoriaService(AuditoriaLogRepository auditoriaLogRepository) {
+    public AuditoriaService(AuditoriaLogRepository auditoriaLogRepository,
+                            MongoTemplate mongoTemplate) {
         this.auditoriaLogRepository = auditoriaLogRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public AuditoriaLog registrarCriacao(String projetoId, String tarefaId, String titulo, String responsavelId, String responsavelEmail, String traceId) {
         List<ModificacaoLogDto> modificacoes = new ArrayList<>();
         modificacoes.add(new ModificacaoLogDto(CategoriaModificacao.CRIACAO, "Tarefa criada com título '" + titulo + "'."));
+
+        String usuario = firstNonBlank(responsavelEmail, responsavelId);
+        String acao = "CRIACAO: Tarefa criada com título '" + titulo + "'.";
+        salvarEvento(projetoId, tarefaId, usuario, acao, traceId);
+
         return salvarLog(projetoId, tarefaId, modificacoes, responsavelId, responsavelEmail, traceId);
     }
 
     public AuditoriaLog registrarExclusao(String projetoId, String tarefaId, String titulo, String responsavelId, String responsavelEmail, String traceId) {
         List<ModificacaoLogDto> modificacoes = new ArrayList<>();
         modificacoes.add(new ModificacaoLogDto(CategoriaModificacao.EXCLUSAO, "Tarefa removida: '" + titulo + "'."));
+
+        String usuario = firstNonBlank(responsavelEmail, responsavelId);
+        String acao = "EXCLUSAO: Tarefa removida: '" + titulo + "'.";
+        salvarEvento(projetoId, tarefaId, usuario, acao, traceId);
+
         return salvarLog(projetoId, tarefaId, modificacoes, responsavelId, responsavelEmail, traceId);
     }
 
     public AuditoriaLog registrarAtualizacao(String projetoId, String tarefaId, List<ModificacaoLogDto> modificacoes, String responsavelId, String responsavelEmail, String traceId) {
+        String usuario = firstNonBlank(responsavelEmail, responsavelId);
+        String detalhes = (modificacoes == null || modificacoes.isEmpty())
+                ? ""
+                : modificacoes.stream().map(Object::toString).collect(Collectors.joining(" | "));
+        String acao = detalhes.isBlank() ? "ATUALIZACAO" : "ATUALIZACAO: " + detalhes;
+        salvarEvento(projetoId, tarefaId, usuario, acao, traceId);
+
         return salvarLog(projetoId, tarefaId, modificacoes, responsavelId, responsavelEmail, traceId);
     }
 
     public AuditoriaLog registrarAtribuicao(String projetoId, String tarefaId, String usuarioAnterior, String usuarioNovo, String responsavelId, String responsavelEmail, String traceId) {
         List<ModificacaoLogDto> modificacoes = new ArrayList<>();
-        modificacoes.add(new ModificacaoLogDto(CategoriaModificacao.EDICAO, "Responsável alterado de '" + usuarioAnterior + "' para '" + usuarioNovo + "'."));
+        CategoriaModificacao categoria;
+        try {
+            categoria = CategoriaModificacao.valueOf("ATRIBUICAO");
+        } catch (IllegalArgumentException e) {
+            categoria = null;
+        }
+        modificacoes.add(new ModificacaoLogDto(categoria, "Atribuição alterada de '" + usuarioAnterior + "' para '" + usuarioNovo + "'."));
+
+        // salva também na coleção auditoria_eventos
+        String usuario = firstNonBlank(responsavelEmail, responsavelId);
+        String acao = "ATRIBUICAO: de '" + usuarioAnterior + "' para '" + usuarioNovo + "'.";
+        salvarEvento(projetoId, tarefaId, usuario, acao, traceId);
+
         return salvarLog(projetoId, tarefaId, modificacoes, responsavelId, responsavelEmail, traceId);
     }
 
@@ -54,6 +89,18 @@ public class AuditoriaService {
         log.setModificacoes(modificacoes);
         log.setTraceId(traceId);
         return auditoriaLogRepository.save(log);
+    }
+
+    private void salvarEvento(String projetoId, String tarefaId, String usuario, String acao, String traceId) {
+        AuditoriaEvento evento = AuditoriaEvento.builder()
+                .projetoId(projetoId)
+                .tarefaId(tarefaId)
+                .usuario(usuario)
+                .acao(acao)
+                .traceId(traceId)
+                .data(LocalDateTime.now())
+                .build();
+        mongoTemplate.save(evento);
     }
 
     public List<AuditoriaResponseDto> listarPorTarefaId(String tarefaId) {

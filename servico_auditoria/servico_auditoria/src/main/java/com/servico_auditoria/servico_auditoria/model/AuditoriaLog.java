@@ -11,7 +11,7 @@ import com.servico_auditoria.servico_auditoria.model.dto.ResponsavelAlteracaoDto
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document(collection = "logs")
+@Document(collection = "auditoria_logs")
 @Data
 @Getter
 @Setter
