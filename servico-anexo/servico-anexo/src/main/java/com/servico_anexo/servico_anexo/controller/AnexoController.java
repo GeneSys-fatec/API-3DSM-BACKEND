@@ -1,67 +1,85 @@
 package com.servico_anexo.servico_anexo.controller;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.servico_anexo.servico_anexo.service.FileStorageService;
 
 @RestController
 @RequestMapping("/anexos")
 public class AnexoController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AnexoController.class);
+    @Autowired
+    private FileStorageService storage;
 
-    private final String UPLOAD_DIR = new File("").getAbsolutePath() + "/taskmngr-backend/uploads/";
+    private boolean badId(String id) {
+        return id == null || id.isBlank() || "undefined".equalsIgnoreCase(id) || "null".equalsIgnoreCase(id);
+    }
 
-    @GetMapping("/{nomeArquivo}")
-    public ResponseEntity<Resource> visualizarAnexo(@PathVariable String nomeArquivo) {
+    @PostMapping("/tarefa/{id}/upload")
+    public ResponseEntity<?> upload(
+            @PathVariable String id,
+            @RequestParam("file") MultipartFile file) {
         try {
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(nomeArquivo).normalize();
-            logger.info("AnexoController: Tentando acessar o caminho: {}", filePath.toString());
+            if (badId(id)) return ResponseEntity.badRequest().body("ID da tarefa inválido");
+            String saved = storage.save(id, file);
+            // Retorna um objeto JSON no formato {"url": "nome_do_arquivo.ext"}
+            return ResponseEntity.ok(Map.of("url", saved));
+        } catch (IOException ex) {
+            return ResponseEntity.internalServerError().body("Erro ao salvar: " + ex.getMessage());
+        }
+    }
 
-            Resource resource = new UrlResource(filePath.toUri());
+    @GetMapping("/tarefa/{id}")
+    public ResponseEntity<?> listar(@PathVariable String id) {
+        try {
+            if (badId(id)) return ResponseEntity.badRequest().body("ID da tarefa inválido");
+            
+            // Mapeia a lista de strings para uma lista de objetos
+            List<Map<String, String>> anexosComoObjeto = storage.list(id).stream()
+                .map(nomeArquivo -> Map.of("arquivoNome", nomeArquivo))
+                .collect(Collectors.toList());
 
-            if (!resource.exists() || !resource.isReadable()) {
-                logger.warn("Arquivo não encontrado ou inacessível: {}", filePath.toString());
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.ok(anexosComoObjeto);
+        } catch (IOException ex) {
+            return ResponseEntity.internalServerError().body("Erro ao listar: " + ex.getMessage());
+        }
+    }
 
+    @GetMapping("/{idTarefa}/{nomeArquivo}")
+    public ResponseEntity<?> baixar(@PathVariable String idTarefa, @PathVariable String nomeArquivo) {
+        try {
+            if (badId(idTarefa)) return ResponseEntity.badRequest().body("ID da tarefa inválido");
+            Resource resource = storage.load(idTarefa, nomeArquivo);
             String contentType = null;
             try {
-                contentType = Files.probeContentType(filePath);
-            } catch (IOException ex) {
-            }
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-
-            String headerValue = "inline; filename=\"" + resource.getFilename() + "\"";
-
+                Path p = storage.taskFolder(idTarefa).resolve(nomeArquivo);
+                contentType = Files.probeContentType(p);
+            } catch (IOException ignore) {}
+            if (contentType == null) contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
-                    .body(resource);
-
-        } catch (MalformedURLException ex) {
-            logger.error("Erro ao construir a URL do arquivo: {}", ex.getMessage());
-            return ResponseEntity.badRequest().body(null);
-        } catch (Exception ex) {
-            logger.error("Erro interno ao servir o anexo: {}", ex.getMessage(), ex);
-            return ResponseEntity.internalServerError().body(null);
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+        } catch (IOException ex) {
+            return ResponseEntity.internalServerError().body("Erro ao carregar: " + ex.getMessage());
         }
     }
 }

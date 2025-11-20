@@ -13,8 +13,14 @@ public class UsuarioClient {
 
     private final WebClient webClient;
 
-    public UsuarioClient(@Value("${usuario.service.url}") String usuarioServiceUrl, WebClient.Builder builder) {
-        this.webClient = builder.baseUrl(usuarioServiceUrl).build();
+    public UsuarioClient(@Value("${usuario.service.url}") String usuarioServiceUrl,
+                         @Value("${internal.api.key}") String apiKey,
+                         WebClient.Builder builder) {
+
+        this.webClient = builder
+                .baseUrl(usuarioServiceUrl)
+                .defaultHeader("X-Internal-API-Key", apiKey)
+                .build();
     }
 
 
@@ -30,16 +36,16 @@ public class UsuarioClient {
     }
 
 
-    public Mono<UsuarioDTO> getUsuarioSessaoMono(String authorizationHeader) {
+    public Mono<UsuarioDTO> getUsuarioSessaoMono(String token) {
         return webClient.get()
                 .uri("/auth/session")
-                .header("Authorization", authorizationHeader)
+                .cookie("jwt-token", token)
                 .retrieve()
                 .bodyToMono(UsuarioDTO.class)
                 .onErrorResume(ex -> Mono.empty());
     }
 
-    public UsuarioDTO getUsuarioSessao(String authorizationHeader) {
-        return getUsuarioSessaoMono(authorizationHeader).block();
+    public UsuarioDTO getUsuarioSessao(String token) {
+        return getUsuarioSessaoMono(token).block();
     }
 }

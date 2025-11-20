@@ -36,8 +36,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
             "/auth/cadastrar",
-            "/equipe/buscar-ids-por-usuario/**", 
-            "/equipe/interno/validar-membro", 
+            "/equipe/buscar-ids-por-usuario/**",
+            "/equipe/interno/validar-membro",
             "/boasvindas",
             "/swagger-ui/**",
             "/v3/api-docs/**",
@@ -61,7 +61,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             return;
         }
 
-        var token = this.recoverToken(request);
+        var token = this.recoverToken(request); //
 
         if (token != null && !token.isEmpty()) {
             try {
@@ -98,6 +98,11 @@ public class SecurityFilter extends OncePerRequestFilter {
                     return cookie.getValue();
                 }
             }
+        }
+
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
         }
 
         return null;

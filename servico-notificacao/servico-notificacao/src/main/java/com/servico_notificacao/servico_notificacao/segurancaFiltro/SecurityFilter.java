@@ -20,12 +20,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * SecurityFilter simplificado para o serviço de notificações.
- * Lê o header Authorization, consulta /auth/session via UsuarioClient
- * e popula o SecurityContext com um principal UsuarioDTO mínimo.
- * Se token ausente ou inválido, segue sem autenticação (endpoints podem validar depois).
- */
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
 
@@ -38,16 +32,27 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getServletPath();
+        if (path.startsWith("/notificacao/criar/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-    String authorization = request.getHeader("Authorization");
-    log.debug("SecurityFilter - Authorization header presente? {}", authorization != null);
-        if (authorization != null && !authorization.isBlank()) {
+        var token = this.recoverToken(request);
+
+        log.debug("SecurityFilter - Token (cookie) presente? {}", token != null);
+        if (token != null && !token.isBlank()) {
             try {
-                UsuarioDTO usuario = usuarioClient.getUsuarioSessao(authorization);
+
+
+
+                UsuarioDTO usuario = usuarioClient.getUsuarioSessao(token);
+
                 log.debug("SecurityFilter - Usuario resolvido? {}", (usuario != null ? usuario.getUsuId() : null));
                 if (usuario != null && usuario.getUsuId() != null) {
                     var auth = new UsernamePasswordAuthenticationToken(
@@ -63,5 +68,18 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+    
+    private String recoverToken(HttpServletRequest request) {
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if ("jwt-token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
