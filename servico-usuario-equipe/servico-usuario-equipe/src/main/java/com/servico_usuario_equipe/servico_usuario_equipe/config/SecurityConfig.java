@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/usuario/buscar/**").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/equipe/interno/validar-membro").permitAll()
                 .requestMatchers(HttpMethod.GET, "/equipe/buscar-ids-por-usuario/**").permitAll()
+                .requestMatchers("/auth/esqueci-senha", "/auth/resetar-senha").permitAll()
                 .requestMatchers(
                         "/boasvindas",
                         "/swagger-ui/**",
