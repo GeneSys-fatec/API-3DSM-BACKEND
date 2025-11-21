@@ -27,6 +27,8 @@ public class AuditoriaLog {
 
     private String traceId;
 
+    private String tarefaNome;
+
     private ResponsavelAlteracaoDto responsavel;
 
     private List<ModificacaoLogDto> modificacoes;

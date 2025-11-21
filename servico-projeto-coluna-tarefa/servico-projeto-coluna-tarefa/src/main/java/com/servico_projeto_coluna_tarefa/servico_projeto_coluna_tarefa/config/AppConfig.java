@@ -14,6 +14,10 @@ public class AppConfig {
     @Value("${notificacao.service.url}")
     private String notificacaoServiceUrl;
 
+
+    @Value("${auditoria.service.url:http://localhost:8088}")
+    private String auditoriaServiceUrl;
+
     @Value("${internal.api.key}")
     private String apiKey;
 
@@ -29,6 +33,14 @@ public class AppConfig {
         return WebClient.builder()
                 .baseUrl(notificacaoServiceUrl)
                 .defaultHeader("X-Internal-API-Key", apiKey)
+                .build();
+    }
+
+
+    @Bean(name = "auditoriaWebClient")
+    public WebClient auditoriaWebClient() {
+        return WebClient.builder()
+                .baseUrl(auditoriaServiceUrl)
                 .build();
     }
 }

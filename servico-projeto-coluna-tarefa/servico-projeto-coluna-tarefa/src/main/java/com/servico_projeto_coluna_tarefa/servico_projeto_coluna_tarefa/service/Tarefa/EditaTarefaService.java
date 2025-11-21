@@ -2,14 +2,13 @@ package com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.service.
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
 
+import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.client.AuditoriaClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.dto.TarefaDTO;
 import com.servico_projeto_coluna_tarefa.servico_projeto_coluna_tarefa.model.entidade.ResponsavelTarefa;
@@ -35,15 +34,23 @@ public class EditaTarefaService {
     @Autowired
     private UsuarioClient usuarioClient;
 
+    @Autowired
+    private AuditoriaClient auditoriaClient;
+
     public TarefaModel atualizarTarefa(String tarId, TarefaDTO dto, UsuarioDTO editor) {
         TarefaModel tarefa = buscaTarefaService.buscarPorId(tarId)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada com id: " + tarId));
 
-        Set<String> responsaveisAntigos = tarefa.getResponsaveis().stream()
+        String tituloAntigo = tarefa.getTarTitulo();
+        String descAntiga = tarefa.getTarDescricao();
+        String statusAntigo = tarefa.getTarStatus();
+        String prioridadeAntiga = tarefa.getTarPrioridade();
+        String prazoAntigo = tarefa.getTarPrazo();
+
+        Set<String> responsaveisAntigosIds = tarefa.getResponsaveis().stream()
                 .map(ResponsavelTarefa::getUsuId)
                 .collect(Collectors.toSet());
 
-        System.out.println("\n[EditaTarefaService] Responsáveis Antigos: " + responsaveisAntigos);
         tarefa.setTarTitulo(dto.getTarTitulo());
         tarefa.setTarDescricao(dto.getTarDescricao());
         tarefa.setTarStatus(dto.getTarStatus());
@@ -78,15 +85,9 @@ public class EditaTarefaService {
 
         if (editor != null) {
             try {
-                System.out.println("[EditaTarefaService] Editor da Tarefa: " + editor.getUsuNome());
-
                 for (ResponsavelTarefa novoResponsavel : responsaveisNovosEntidade) {
-                    System.out.println("[EditaTarefaService] A verificar Novo Responsável: " + novoResponsavel.getUsuNome());
-
-                    if (!responsaveisAntigos.contains(novoResponsavel.getUsuId()) &&
+                    if (!responsaveisAntigosIds.contains(novoResponsavel.getUsuId()) &&
                             !novoResponsavel.getUsuId().equals(editor.getUsuId())) {
-
-                        System.out.println("[EditaTarefaService] DETETADA NOVA ATRIBUIÇÃO! A enviar notificação para: " + novoResponsavel.getUsuNome());
 
                         NotificacaoRequestDTO notificacaoDTO = new NotificacaoRequestDTO(
                                 editor.getUsuId(),
@@ -95,30 +96,60 @@ public class EditaTarefaService {
                                 tarefaAtualizada.getTarId(),
                                 tarefaAtualizada.getTarTitulo()
                         );
-
-                        // Chamada corrigida (sem authHeader)
                         notificacaoClient.criarNotificacaoAtribuicao(notificacaoDTO);
                     }
                 }
             } catch (Exception e) {
-                System.err.println("AVISO: Falha ao enviar notificação de atribuição. Erro: " + e.getMessage());
+                System.err.println("AVISO: Falha ao enviar notificação: " + e.getMessage());
             }
         }
 
-        return tarefaAtualizada;
-    }
-
-    public TarefaModel atualizar(TarefaModel tarefa) {
-        return tarefaRepository.save(tarefa);
-    }
-
-    private String getAuthHeader() {
         try {
-            return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-                    .getRequest().getHeader("Authorization");
+            List<AuditoriaClient.ModificacaoSimplesDTO> alteracoes = new ArrayList<>();
+
+            if (!Objects.equals(tituloAntigo, tarefaAtualizada.getTarTitulo())) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO",
+                        "Título alterado de '" + tituloAntigo + "' para '" + tarefaAtualizada.getTarTitulo() + "'"));
+            }
+            if (!Objects.equals(statusAntigo, tarefaAtualizada.getTarStatus())) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO",
+                        "Status alterado de '" + statusAntigo + "' para '" + tarefaAtualizada.getTarStatus() + "'"));
+            }
+            if (!Objects.equals(prioridadeAntiga, tarefaAtualizada.getTarPrioridade())) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO",
+                        "Prioridade alterada de '" + prioridadeAntiga + "' para '" + tarefaAtualizada.getTarPrioridade() + "'"));
+            }
+            if (!Objects.equals(prazoAntigo, tarefaAtualizada.getTarPrazo())) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO",
+                        "Prazo alterado de " + prazoAntigo + " para " + tarefaAtualizada.getTarPrazo()));
+            }
+            if (!Objects.equals(descAntiga, tarefaAtualizada.getTarDescricao())) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO", "Descrição da tarefa atualizada"));
+            }
+
+            if (alteracoes.isEmpty()) {
+                alteracoes.add(new AuditoriaClient.ModificacaoSimplesDTO("EDICAO", "Tarefa atualizada (outros campos)"));
+            }
+
+            AuditoriaClient.RegistrarLogRequest logRequest = new AuditoriaClient.RegistrarLogRequest(
+                    tarefaAtualizada.getProjId(),
+                    tarefaAtualizada.getTarId(),
+                    tarefaAtualizada.getTarTitulo(),
+                    editor != null ? editor.getUsuId() : "sistema",
+                    editor != null ? editor.getUsuEmail() : "sistema@email.com",
+                    alteracoes
+            );
+
+            auditoriaClient.registrarLog(logRequest,
+                    editor != null ? editor.getUsuId() : null,
+                    editor != null ? editor.getUsuEmail() : null,
+                    editor != null ? editor.getUsuNome() : null
+            );
+
         } catch (Exception e) {
-            System.err.println("Não foi possível obter o cabeçalho de Autorização (pode ser uma tarefa de sistema).");
-            return null;
+            System.err.println("[EditaTarefaService] Erro auditoria: " + e.getMessage());
         }
+
+        return tarefaAtualizada;
     }
 }

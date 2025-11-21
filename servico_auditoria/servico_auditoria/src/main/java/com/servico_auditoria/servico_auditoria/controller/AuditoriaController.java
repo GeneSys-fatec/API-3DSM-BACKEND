@@ -40,39 +40,40 @@ public class AuditoriaController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuditoriaLog> registrar(
             @RequestBody @Valid RegistrarLogRequest body,
-            @RequestHeader(value = "X-User", required = false) String headerUser,
             @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
             @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail,
+            @RequestHeader(value = "X-User-Name", required = false) String headerUserName,
             @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
 
-        // Aceita projetoId OU tarefaId
-        if ((body.projetoId == null || body.projetoId.isBlank())
-                && (body.tarefaId == null || body.tarefaId.isBlank())) {
+        if ((body.projetoId == null || body.projetoId.isBlank()) &&
+                (body.tarefaId == null || body.tarefaId.isBlank())) {
             return ResponseEntity.badRequest().build();
         }
 
-        String respId = body.responsavelId != null ? body.responsavelId : headerUserId;
-        String respEmail = body.responsavelEmail != null ? body.responsavelEmail : headerUserEmail;
-        String respNomeHeader = headerUser; // opcional
+        String finalId = (headerUserId != null) ? headerUserId : body.responsavelId;
+        String finalEmail = (headerUserEmail != null) ? headerUserEmail : body.responsavelEmail;
+        String finalNome = (headerUserName != null) ? headerUserName : (finalEmail != null ? finalEmail : finalId);
 
-        AuditoriaLog salvo = auditoriaLogService.registrarComContexto(
+        AuditoriaLog salvo = auditoriaLogService.registrarLog(
                 body.projetoId,
                 body.tarefaId,
-                respId,
-                respEmail,
+                body.tarefaNome,
                 body.modificacoes,
-                respId,
-                respNomeHeader,
+                finalId,
+                finalEmail,
+                finalNome,
                 traceId
         );
+
         return ResponseEntity.ok(salvo);
     }
 
     public static class RegistrarLogRequest {
-        public String projetoId;                 // opcional
-        public String tarefaId;                  // opcional
-        public String responsavelId;            // opcional
-        public String responsavelEmail;         // opcional
+        public String projetoId;
+        public String tarefaId;
+        public String tarefaNome;
+        public String responsavelId;
+        public String responsavelEmail;
         public List<ModificacaoLogDto> modificacoes;
     }
 }
