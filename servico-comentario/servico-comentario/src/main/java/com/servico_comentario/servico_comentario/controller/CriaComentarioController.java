@@ -19,10 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
-
-
-
 @RestController
 @RequestMapping("/comentario")
 public class CriaComentarioController {
@@ -36,19 +32,14 @@ public class CriaComentarioController {
     @PostMapping("/cadastrar")
     public ResponseEntity<ComentarioDTO> cadastrarComentario(@RequestBody ComentarioDTO dto) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UsuarioPrincipalDTO principal = (UsuarioPrincipalDTO) authentication.getPrincipal();
-
         ComentarioModel comentario = comentarioConverterService.dtoParaModel(dto);
 
-        comentario.setUsuId(principal.id());
-        comentario.setUsuNome(principal.nome());
-        comentario.setComDataAtualizacao(new Date());
-
-        ComentarioModel salvo = criaComentarioService.adicionarComentario(comentario, principal);
+        ComentarioModel salvo = criaComentarioService.adicionarComentario(comentario);
 
         ComentarioDTO dtoSalvo = comentarioConverterService.modelParaDto(salvo);
         adicionadorLink.adicionarLink(dtoSalvo);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(dtoSalvo);
     }
+
 }

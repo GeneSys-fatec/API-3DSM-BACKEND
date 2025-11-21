@@ -16,7 +16,11 @@ public class EditaComentarioService {
     private ValidaComentarioService validaComentarioService;
 
     public ComentarioModel atualizarComentario(ComentarioModel comentario) {
+
         validaComentarioService.validarComentario(comentario);
+
+        validaComentarioService.verificarSeUsuarioPodeAlterarComentario(comentario);
+
         return repository.save(comentario);
     }
 }
