@@ -23,8 +23,7 @@ public class CadastroUsuarioController {
 
     @PostMapping("/cadastrar")
     public ResponseEntity cadastrar(@RequestBody @Valid UsuarioCadastroDTO body) {
-        cadastroUsuarioService.cadastrarUsuario(body);
-        ResponseDTO response = new ResponseDTO(body.getUsuNome());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        ResponseDTO novoUsuarioResponse = cadastroUsuarioService.cadastrarUsuario(body);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuarioResponse);
     }
 }

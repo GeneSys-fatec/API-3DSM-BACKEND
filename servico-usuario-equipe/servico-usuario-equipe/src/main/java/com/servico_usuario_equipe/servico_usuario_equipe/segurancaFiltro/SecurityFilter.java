@@ -61,18 +61,18 @@ public class SecurityFilter extends OncePerRequestFilter {
             return;
         }
 
-        var token = this.recoverToken(request); //
+        var token = this.recoverToken(request); 
 
         if (token != null && !token.isEmpty()) {
             try {
                 String decryptedToken = CryptoUtils.decrypt(token, cookieService.getSecret());
                 System.out.println("Decrypted Token: " + decryptedToken);
 
-                var login = validaTokenService.validateToken(decryptedToken);
+                var usuId = validaTokenService.validateToken(decryptedToken);
 
-                UsuarioModel usuario = usuarioRepository.findByEmail(login)
+                UsuarioModel usuario = usuarioRepository.findById(usuId)
                         .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado",
-                                "O email referenciado no token não existe na base."));
+                                "O ID referenciado no token não existe na base."));
 
                 var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
                 var authentication = new UsernamePasswordAuthenticationToken(usuario, null, authorities);

@@ -1,4 +1,4 @@
-package com.servico_auth.servico_auth.service.Token;
+package com.servico_usuario_equipe.servico_usuario_equipe.service.Token;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.servico_auth.servico_auth.model.entidade.UsuarioModel;
+import com.servico_usuario_equipe.servico_usuario_equipe.model.entidade.UsuarioModel;
 
 @Service
 public class CriaTokenService {

@@ -26,10 +26,12 @@ public class LoginUsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid UsuarioLoginDTO body) {
-        String nomeUsuario = loginUsuarioService.loginUsuario(body);
+        ResponseDTO usuarioResponse = loginUsuarioService.loginUsuario(body);
         String token = loginUsuarioService.generateTokenForUser(body);
-        ResponseDTO response = new ResponseDTO(nomeUsuario);
         ResponseCookie cookie = cookieService.createJWTCookie(token);
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(response);
+        
+        return ResponseEntity.ok()
+               .header(HttpHeaders.SET_COOKIE, cookie.toString())
+               .body(usuarioResponse);
     }
 }
