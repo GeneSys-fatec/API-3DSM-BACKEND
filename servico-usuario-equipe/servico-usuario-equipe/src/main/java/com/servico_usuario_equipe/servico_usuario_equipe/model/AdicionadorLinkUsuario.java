@@ -25,7 +25,7 @@ public class AdicionadorLinkUsuario {
             .withRel("listar");
 
         Link updateLink = WebMvcLinkBuilder
-            .linkTo(WebMvcLinkBuilder.methodOn(EditaUsuarioController.class).atualizarUsuario(id, dto))
+            .linkTo(WebMvcLinkBuilder.methodOn(EditaUsuarioController.class).atualizarNomeEmail(id, dto, null))
             .withRel("atualizar");
 
         Link deleteLink = WebMvcLinkBuilder

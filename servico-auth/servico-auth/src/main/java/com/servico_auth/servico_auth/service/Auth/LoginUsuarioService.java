@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.servico_auth.servico_auth.exceptions.personalizados.autenticação.CredenciaisInvalidasException;
 import com.servico_auth.servico_auth.exceptions.personalizados.usuário.UsuarioNaoEncontradoException;
+import com.servico_auth.servico_auth.model.dto.resposta.ResponseDTO;
 import com.servico_auth.servico_auth.model.dto.usuario.UsuarioLoginDTO;
 import com.servico_auth.servico_auth.model.entidade.UsuarioModel;
 import com.servico_auth.servico_auth.repository.UsuarioRepository;
@@ -31,9 +32,15 @@ public class LoginUsuarioService {
         return usuario;
     }
 
-    public String loginUsuario(UsuarioLoginDTO body) {
+    public ResponseDTO loginUsuario(UsuarioLoginDTO body) {
         UsuarioModel usuario = this.validarCredenciais(body);
-        return usuario.getUsuNome();
+        
+        return new ResponseDTO(
+            usuario.getUsuId(), 
+            usuario.getUsuNome(), 
+            usuario.getUsuEmail(), 
+            usuario.getUsuCaminhoFoto()
+        );
     }
 
     public String generateTokenForUser(UsuarioLoginDTO body) {

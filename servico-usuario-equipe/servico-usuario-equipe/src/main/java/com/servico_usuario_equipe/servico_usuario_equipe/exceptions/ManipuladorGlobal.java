@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.CredenciaisInvalidasException;
+import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.SenhaIncorretaException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.TokenCriacaoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.TokenInvalidoException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.equipes.AcessoNaoAutorizadoException;
@@ -72,6 +73,12 @@ public class ManipuladorGlobal {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 
+    // SenhaIncorretaException
+    @ExceptionHandler(SenhaIncorretaException.class)
+    public ResponseEntity<ErroRespostaDTO> manipularSenhaIncorreta(SenhaIncorretaException ex) {
+        ErroRespostaDTO erro = new ErroRespostaDTO(ex.getMessage(), ex.getMensagem());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+    }
 
     // EquipeNaoEncontradaException
     @ExceptionHandler(EquipeNaoEncontradaException.class)
