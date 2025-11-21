@@ -30,8 +30,9 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST,"/auth/cadastrar").permitAll()
-                .requestMatchers(HttpMethod.GET, "/auth/session").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/auth/session").permitAll()
                 .requestMatchers(HttpMethod.GET, "/usuario/buscar/**").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/usuario/foto/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/equipe/interno/validar-membro").permitAll()
                 .requestMatchers(HttpMethod.GET, "/equipe/buscar-ids-por-usuario/**").permitAll()
                 .requestMatchers(

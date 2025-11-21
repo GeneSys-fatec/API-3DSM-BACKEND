@@ -20,9 +20,10 @@ public class CriaTokenService {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer("taskmngr-backend")
-                .withSubject(usuarioModel.getUsuEmail())
+                .withSubject(usuarioModel.getUsuId())
                 .withClaim("usuId", usuarioModel.getUsuId())
                 .withClaim("usuNome", usuarioModel.getUsuNome())
+                .withClaim("usuEmail", usuarioModel.getUsuEmail())
                 .withExpiresAt(this.generateExpirationDate())
                 .sign(algorithm);
     }

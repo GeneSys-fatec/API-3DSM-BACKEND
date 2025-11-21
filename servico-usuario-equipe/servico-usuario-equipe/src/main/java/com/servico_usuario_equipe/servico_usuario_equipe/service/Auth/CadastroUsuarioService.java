@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.autenticação.SenhasNaoCoincidemException;
 import com.servico_usuario_equipe.servico_usuario_equipe.exceptions.personalizados.usuário.EmailJaCadastradoException;
+import com.servico_usuario_equipe.servico_usuario_equipe.model.dto.ResponseDTO;
 import com.servico_usuario_equipe.servico_usuario_equipe.model.dto.usuario.UsuarioCadastroDTO;
 import com.servico_usuario_equipe.servico_usuario_equipe.model.entidade.UsuarioModel;
 import com.servico_usuario_equipe.servico_usuario_equipe.repository.UsuarioRepository;
@@ -20,7 +21,7 @@ public class CadastroUsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void cadastrarUsuario(UsuarioCadastroDTO body) {
+    public ResponseDTO cadastrarUsuario(UsuarioCadastroDTO body) {
         Optional<UsuarioModel> usuarioOpt = this.usuarioRepository.findByEmail(body.getUsuEmail().toLowerCase());
 
         if (usuarioOpt.isPresent()) {
@@ -35,6 +36,14 @@ public class CadastroUsuarioService {
         novoUsuario.setUsuSenha(passwordEncoder.encode(body.getUsuSenha()));
         novoUsuario.setUsuEmail(body.getUsuEmail().toLowerCase());
         novoUsuario.setUsuNome(body.getUsuNome());
-        this.usuarioRepository.save(novoUsuario);
+        
+        UsuarioModel usuarioSalvo = this.usuarioRepository.save(novoUsuario);
+        
+        return new ResponseDTO(
+            usuarioSalvo.getUsuId(), 
+            usuarioSalvo.getUsuNome(),
+            usuarioSalvo.getUsuEmail(),
+            usuarioSalvo.getUsuCaminhoFoto() 
+        );
     }
 }
