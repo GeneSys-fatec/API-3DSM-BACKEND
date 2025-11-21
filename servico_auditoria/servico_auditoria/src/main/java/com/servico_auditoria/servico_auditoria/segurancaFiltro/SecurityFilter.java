@@ -5,13 +5,17 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.servico_auditoria.servico_auditoria.client.UsuarioClient;
+import com.servico_auditoria.servico_auditoria.model.dto.UsuarioDTO;
+import com.servico_auditoria.servico_auditoria.service.Auth.CookieService;
+import com.servico_auditoria.servico_auditoria.service.Token.ValidaTokenService;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,21 +23,51 @@ import java.util.Collections;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
+    @Autowired
+    ValidaTokenService validaTokenService;
 
-    private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
+    // --- INÍCIO DA CORREÇÃO ---
+    @Autowired
+    UsuarioClient usuarioClient;
+
+    @Autowired
+    CookieService cookieService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        try {
-            // sua lógica de token/cookie aqui (igual notificações)
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             chain.doFilter(request, response);
-        } catch (Exception ex) {
-            SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setHeader("WWW-Authenticate", "");
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Não autorizado\"}");
+            return;
+        }
+
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/auditoria/") || path.startsWith("/actuator/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        var token = this.recoverToken(request);
+        if (token != null && !token.isEmpty()) {
+            try {
+                UsuarioDTO usuario = usuarioClient.getUsuarioSessao(token);
+
+                if (usuario == null) {
+                    throw new RuntimeException("Usuário não encontrado no user-service");
+                }
+                
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (Exception ex) {
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Não autorizado: " + ex.getMessage());
+                return;
+            }
+            chain.doFilter(request, response);
         }
     }
 
@@ -48,10 +82,4 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
-    private String extrairClaimSimples(String token, int len) {
-        return token.length() >= len ? token.substring(0, len) : null;
-    }
-
-    public record UsuarioPrincipalDTO(String usuId, String usuNome) {}
 }
