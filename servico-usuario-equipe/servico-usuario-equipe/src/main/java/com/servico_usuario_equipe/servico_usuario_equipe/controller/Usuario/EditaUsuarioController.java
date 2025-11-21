@@ -38,22 +38,14 @@ public class EditaUsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarNomeEmail(
         @PathVariable String id, @RequestBody UsuarioDTO dto, HttpServletResponse response) { 
-        try {
-            var atualizado = editaUsuarioService.atualizarNomeEmail(id, dto.getUsuNome(), dto.getUsuEmail(), response);
-            return ResponseEntity.ok(atualizado);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        var atualizado = editaUsuarioService.atualizarNomeEmail(id, dto.getUsuNome(), dto.getUsuEmail(), response);
+        return ResponseEntity.ok(atualizado);
     }
 
     @PutMapping("/{id}/senha")
     public ResponseEntity<?> atualizarSenha(@PathVariable String id, @RequestBody Map<String, String> body) {
-        try {
-            editaUsuarioService.atualizarSenha(id, body.get("senhaAtual"), body.get("novaSenha"));
-            return ResponseEntity.ok("Senha atualizada com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        editaUsuarioService.atualizarSenha(id, body.get("senhaAtual"), body.get("novaSenha"));
+        return ResponseEntity.ok("Senha atualizada com sucesso."); 
     }
 
     @PostMapping("/{id}/foto") 
