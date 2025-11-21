@@ -14,13 +14,32 @@ public class ExcluiComentarioService {
     @Autowired
     private ComentarioRepository repository;
 
-    public void deletarRespostaComentario(String comId) {
+    @Autowired
+    private ValidaComentarioService validaComentarioService;
+
+    @Autowired
+    private BuscaComentarioService buscaComentarioService;
+
+    public void excluirComentario(String comId) {
+
+        ComentarioModel comentario = buscaComentarioService.listarPorId(comId)
+                .orElseThrow(() -> new RuntimeException("Comentário não encontrado."));
+
+        validaComentarioService.verificarSeUsuarioPodeExcluirComentario(comentario);
+
+        excluirRespostas(comentario.getComId());
+
+        repository.deleteById(comentario.getComId());
+    }
+
+    private void excluirRespostas(String comId) {
         List<ComentarioModel> respostas = repository.findByRespostaComentario(comId);
+
         if (respostas != null && !respostas.isEmpty()) {
             for (ComentarioModel resposta : respostas) {
-                deletarRespostaComentario(resposta.getComId());
+                excluirRespostas(resposta.getComId());
+                repository.deleteById(resposta.getComId());
             }
         }
-        repository.deleteById(comId);
     }
 }
