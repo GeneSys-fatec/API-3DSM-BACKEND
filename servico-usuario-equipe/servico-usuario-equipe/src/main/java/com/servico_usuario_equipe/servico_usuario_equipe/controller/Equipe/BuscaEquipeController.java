@@ -65,8 +65,6 @@ public class BuscaEquipeController {
         return ResponseEntity.ok(dtos);
     }
 
-    //rota de listar as equipes de um usuario especifico
-    //a rota só vai ser usada para adjuar no desenvolvimento
     @GetMapping("/{usuId}/equipes")
     public ResponseEntity<List<EquipeDTO>> listarEquipesDoUsuario(@PathVariable String usuId) {
         List<EquipeModel> equipes = buscaEquipeService.getEquipesPorIdUsuario(usuId);
