@@ -63,7 +63,7 @@ public class AnexoController {
         }
     }
 
-    @GetMapping("/{idTarefa}/{nomeArquivo}")
+    @GetMapping("tarefa/{idTarefa}/{nomeArquivo}")
     public ResponseEntity<?> baixar(@PathVariable String idTarefa, @PathVariable String nomeArquivo) {
         try {
             if (badId(idTarefa)) return ResponseEntity.badRequest().body("ID da tarefa inválido");
